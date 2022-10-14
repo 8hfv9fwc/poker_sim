@@ -3,7 +3,8 @@
 Thanks for offering to review, greatly appreciated as feel particularly stuck.
 
 I've included 3 files:
-    1. The original, messy code that works
+
+    1. The original code that works (but is a mess)
     
     2. A showdown file that is used in the messy code (not particularly concerned about this file - it works OK, just included as used by original code)
     

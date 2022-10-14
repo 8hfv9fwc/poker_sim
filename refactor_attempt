@@ -1,0 +1,153 @@
+from itertools import cycle
+from collections import namedtuple
+from abc import ABC, abstractmethod
+import random
+
+
+class Player:
+    def __init__(self, name):
+        self.name = name
+        self.stack = 200
+        self.wager = 0
+        self.hole = []
+
+    def update_wager(self, amount):
+        self.stack -= amount
+        self.wager += amount
+
+    def get_action(self):
+        return self.get_random_action()
+
+    def get_random_action(self):
+        return random.choice(["fold", "call", "bet"])
+
+    def handle_action(self, action):
+        if action == "fold":
+            pass
+        if action == "call":
+            pass
+        if action == "bet":
+            pass
+
+
+class Players:
+    """Container for Player class"""
+    def __init__(self, players):
+        self.player_order = players
+        self.players = None
+        self.reset()
+
+    def next(self):
+        return next(self.players)
+
+    def reset(self):
+        self.players = cycle(self.player_order)
+
+
+class Pot:
+    def __init__(self):
+        self.value = 0
+        self._contestants = {}
+
+    def update(self, amount, contestant):
+        self.value += amount
+        if contestant in self._contestants:
+            self._contestants[contestant] += amount
+        else:
+            self._contestants[contestant] = amount
+
+
+class Dealer:
+    def __init__(self, queue):
+        self.queue = queue
+
+    def execute(self):
+        for command in self.queue:
+            command.execute()
+
+
+class Command(ABC):
+    @abstractmethod
+    def execute(self):
+        pass
+
+
+class PostBlind(Command):
+    def __init__(self, blind, players, pot):
+        self._blind = blind
+        self._players = players
+        self._pot = pot
+
+    def execute(self):
+        player = self._players.next()
+        if player.stack >= self._blind:
+            player.update_wager(self._blind)
+            self._pot.update(self._blind, player)
+
+
+class DealHole(Command):
+    def __init__(self, players, deck):
+        self.players = players
+        self.deck = deck
+
+    def execute(self):
+        for player in self.players:
+            self.deck.deal(player.hole, n=2)
+
+
+class GetPlayerAction(Command):
+    def __init__(self, player):
+        self.player = player
+
+    def execute(self):
+        action = self.player.get_action()
+        self.player.handle_action(action)
+        
+
+Card = namedtuple("Card", ["rank", "suit"])
+
+
+class Deck:    
+    def __init__(self):
+        ranks = [str(n) for n in range(2, 10)] + list("TJQKA")
+        suits = "♠ ♣ ♥ ♦".split()
+        self._deck = [Card(rank, suit) for suit in suits
+                                       for rank in ranks]
+        self.shuffle()
+
+    def deal(self, target, n):
+        for _ in range(n):
+            target.append(self._deck.pop())
+
+    def shuffle(self):
+        random.shuffle(self._deck)
+
+
+
+if __name__ == "__main__":
+    names = "Alan Bob Charlie Daniel Eddie Frank".split()
+    players = Players([Player(name) for name in names])
+    SMALL_BLIND = 1
+    BIG_BLIND = 2
+    pot = Pot()
+    deck = Deck()
+
+
+    #Commands
+    post_small_blind = PostBlind(SMALL_BLIND, players, pot)
+    post_big_blind = PostBlind(BIG_BLIND, players, pot)
+    deal_hole = DealHole(players.player_order, deck)
+    command_queue = [post_small_blind,
+                     post_big_blind,
+                     deal_hole
+                     ]
+
+    for command in command_queue:
+        command.execute()
+
+# Test
+    for player in players.player_order:
+        print(f"{player.name} {player.stack} {player.wager} "
+              f"{player.hole[0]} {player.hole[1]}")
+    
+

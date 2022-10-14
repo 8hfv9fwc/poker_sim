@@ -17,4 +17,4 @@ I cannot work out how to handle each player making a betting choice in a clean w
     Table vars (curr_bet, min_raise) are updated
     Checks to see if the betting round is resolved (all players have called, all-in, or folded).
    
-Once again, any insights greatly appreciated, thank you :)
+Any insights greatly appreciated, and once again thank you :)
